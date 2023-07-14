@@ -3,7 +3,7 @@ __all__ = ['rNode', 'OSMPreWay', 'OSMWayEndcap', 'OSMWay', 'parseAll', 'createOS
 
 #Cell
 import uuid
-from .utils import checkType, getWidth, createVirtualLastPointForJunctionRoads, convertLongitudeLatitude, giveHeading, convertTopoMap, giveMaxMinLongLat, getDeltaHdg, giveHeight, distance,getXYPositionFromLineLength, setHeights
+from .utils import notDriveWalk, checkType, getWidth, createVirtualLastPointForJunctionRoads, convertLongitudeLatitude, giveHeading, convertTopoMap, giveMaxMinLongLat, getDeltaHdg, giveHeight, distance,getXYPositionFromLineLength, setHeights
 from .arcCurves import getArcCurvatureAndLength2Point, getArcCurvatureAndLength, endTurn2LaneStreet
 import numpy as np
 from osmread import parse_file, Way, Node
@@ -61,6 +61,7 @@ class rNode:
 
         self.Connections = {}
 
+    #**MAY NEED TO EDIT
 
     def _givePossibleTurnIdxs(self, Way):
         '''Gives the Indexes of the registered Ways with >0 outgoing Lanes'''
@@ -76,6 +77,8 @@ class rNode:
                     if self.outgoingLanes[outIdx] > 0:  # no Turning in One-Way Streets
                         turnIdxToOutgoing.append(outIdx)
         return turnIdxToIncoming, turnIdxToOutgoing
+
+    #**WILL NEED TO EDIT THIS TO DISABLE NO TURN TO DIFFERENT road type
 
     def giveTurnPossibilities(self, incomingWay):
         '''Gives the Angles, Lanes, Ways, rNodes and Directions of all valid Turns from a Way as an incoming Way'''
@@ -124,6 +127,7 @@ class rNode:
             wayIdx = self.outgoingWays.index(Way)
             lanenumbers = self.outgoingLanesOpposite[wayIdx]
         turnPossibilities = self.giveTurnPossibilities(Way)
+        #print(turnPossibilities)
         sortangles = copy.copy(turnPossibilities['Angles'])
         sortidx = sorted(range(len(sortangles)), key=lambda k: sortangles[k])
         sortangles.sort()
@@ -345,7 +349,10 @@ class OSMWayEndcap:
                 endLane = self.lanesEnd
             self.JunctionRoads.append(JunctionRoad(way,way,startLane if isStartPoint else -startLane,-endLane if isStartPoint else endLane,
                          self,"start" if isStartPoint else "end","start" if isStartPoint else "end",
-                         self.roadLineElements,self.roadElevationElements))
+                         self.roadLineElements,self.roadElevationElements)) 
+            
+            #**MAY need to add the checktype function here too
+
         #there may be some unused endlanes....
         if self.lanesEnd - self.lanesStart > 0:
             for i in range(self.lanesEnd - self.lanesStart):
@@ -543,7 +550,7 @@ def parseAll(pfad, bildpfad = None, minimumHeight = 0.0, maximumHeight = 100.0, 
     #create streetrNodedict and count rNodeuse
     for entity in parse_file(pfad):
         if isinstance(entity, Way):
-            #print(entity.tags)
+            print(entity.tags)
             ''' old definition
             for word in ["highway"]:#, "lanes", "oneway", "cycleway", "foot", "sidewalk",  "footway"]:
                 if word in entity.tags and not "stairs" in entity.tags["highway"] and not "steps" in entity.tags["highway"] and not  "pedestrian" in entity.tags["highway"] and not "elevator" in entity.tags["highway"] and not "footway" in entity.tags["highway"] and not "bridleway" in entity.tags["highway"] and not "cycleway" in entity.tags["highway"] and not "path" in entity.tags["highway"]:
@@ -556,7 +563,8 @@ def parseAll(pfad, bildpfad = None, minimumHeight = 0.0, maximumHeight = 100.0, 
                     OSMPreWay(entity)
             '''
             for word in ["highway"]:#, "lanes", "oneway", "foot", "sidewalk",  "footway"]: #, "cycleway",
-                if word in entity.tags and not "cycleway" in entity.tags["highway"]:
+                if word in entity.tags and not "cycleway" in entity.tags["highway"]: #and not "service" in entity.tags["highway"]:
+                    print(entity.tags)
                     OSMPreWay(entity)
             
     for preWay in OSMPreWay.allWays.values():
@@ -738,7 +746,7 @@ class JunctionRoad:
             JunctionRoad.junctionNodes[junctionNode.Junction] = {}
             return JunctionRoad.junctionNodes[junctionNode.Junction]
     @staticmethod
-    def createJunctionRoadsForConnection(predecessorway,successorway,junctionNode, maxerror=2.0):
+    def createJunctionRoadsForConnection(predecessorway,successorway,junctionNode, maxerror=1.0):
         contactPointPredecessor = "start" if predecessorway.OSMNodes[0] == junctionNode.id else "end"
         contactPointSuccessor = "start" if successorway.OSMNodes[0] == junctionNode.id else "end"
 
@@ -772,11 +780,13 @@ class JunctionRoad:
         except: pass
         roads = []
         for connection in predecessor2successorLaneConnections:
-            if checkType(predecessorway.tags) == checkType(successorway.tags):
-                    #print("CHARUE")
+            print("Roads: {0} and {1}".format(checkType(predecessorway.tags),checkType(successorway.tags)))
+            if notDriveWalk(checkType(predecessorway.tags),checkType(successorway.tags)):
+                    print("matching junction type")
                     roads.append(JunctionRoad(predecessorway,successorway,connection[0],connection[1],junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements,checkType(predecessorway.tags)))
             else:
-                roads.append(JunctionRoad(predecessorway,successorway,connection[0],connection[1],junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements))
+                print("!!!!!!!!!!!!!non matching road type")
+                #roads.append(JunctionRoad(predecessorway,successorway,connection[0],connection[1],junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements,checkType(predecessorway.tags)))
         return roads
     def __init__(self,predecessorway,successorway,startlane,endlane,junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements,type="driving"):
         #** added the laneWidth field

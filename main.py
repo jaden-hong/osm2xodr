@@ -6,7 +6,7 @@ from OSMParser.xodrWriting import startBasicXODRFile,fillNormalRoads,fillJunctio
 
 osmPfad = r'C:\Users\jhong324\Documents\RESEARCH\osm\western2.osm'
 #topographieKartenPfad = ''
-xodrPfad = r'C:\Users\jhong324\Documents\RESEARCH\xodr\western2.1.xodr'
+xodrPfad = r'C:\Users\jhong324\Documents\RESEARCH\xodr\western2.2.xodr'
 
 #parseAll(osmPfad, bildpfad=topographieKartenPfad, minimumHeight = 163.0, maximumHeight= 192.0, curveRadius=12)
 parseAll(osmPfad, minimumHeight = 163.0, maximumHeight= 192.0, curveRadius=12)

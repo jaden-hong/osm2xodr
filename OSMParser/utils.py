@@ -34,7 +34,9 @@ def checkType(value):
 				# elif "sidewalk" in value:
 				if specificType == "sidewalk":
 					return "sidewalk"
-			elif "steps" in value:
+			if "steps" in value:
+				print('AIDLFJAS;KLDJF;ALKSJDFKLSAJKLFD')
+
 				return "steps"
 							
 			return "sidewalk"
@@ -43,19 +45,26 @@ def checkType(value):
 	#print("COULD NOT ASSIGN :(")
 	return "driving"
 
-def checkTypeJ(value):
-	
+def notDriveWalk(road1,road2):
+	'''
+	returns true if the road predecessor and sucessor road are not driving -> footway
+	'''
+	flag = True
+	if road1 == 'driving' and road2 != 'driving':
+		flag = False
+	elif road2 == 'driving' and road1 != 'driving':
+		flag = False
 
-	return "driving"
+	return flag
 
 def getWidth(val):
-		width = 1.5
+		width = 0.75
 		if val == "sidewalk":
-				width = 1.5
+				width = 0.75
 		elif val == "crosswalk":
-				width = 2.5 
+				width = 0.75
 		elif val == "steps":
-				width = 2.0
+				width = 10
 		elif val == "driving":
 				width = 4.0
 		return width

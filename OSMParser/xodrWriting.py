@@ -5,7 +5,7 @@ __all__ = ['startBasicXODRFile', 'fillNormalRoads', 'fillJunctionRoads']
 #Cell
 from math import floor, pi
 import numpy as np
-from .utils import checkType, checkTypeJ, getWidth, giveHeading, distance,schnittpunkt,getXYPositionFromLineLength, giveReferences
+from .utils import checkType, getWidth, giveHeading, distance,schnittpunkt,getXYPositionFromLineLength, giveReferences
 from .arcCurves import giveHeading,getArcEndposition,distance,schnittpunkt,getArcCurvatureAndLength,getXYPositionFromLineLength,getArcCurvatureAndLength2Point,endTurn2LaneStreet
 from .osmParsing import parseAll,rNode, OSMWay,JunctionRoad, OSMWayEndcap, createOSMJunctionRoadLine, createOSMWayNodeList2XODRRoadLine, JunctionRoad, createEndCap
 #from osm2xods.testing import TestEntity, _test_nodes, testSimpleRoad, test_3WayTCrossing2
@@ -91,7 +91,7 @@ def fillNormalRoads(path = 'Test.xodr'):
         """
 
         for i in range(road.laneNumberOpposite):
-            #print("made road w. id: {0} and of type {1}".format(leftlanenumber,checkType(road.tags)))
+            
             leftlanes += '''
                         <lane id="{0}" type="{1}" level="false">
                                         <link>
@@ -107,7 +107,7 @@ def fillNormalRoads(path = 'Test.xodr'):
         rightlanenumber = -1
 
         for i in range(road.laneNumberDirection):
-            #print("made road w. id: {0} and of type {1}".format(rightlanenumber,checkType(road.tags)))
+            
             rightlanes += '''
                         <lane id="{0}" type="{1}" level="false">
                                         <link>
@@ -119,6 +119,7 @@ def fillNormalRoads(path = 'Test.xodr'):
 
 
 
+        #print("made road w. id: {0} and of type {1}".format(road.xodrID,checkType(road.tags)))
         parts[0] +='''
         <road name="{0}" length="{1}" id="{2}" junction="-1">
             <link>
@@ -230,7 +231,7 @@ def fillJunctionRoads(path = 'Test.xodr'):
 
                     name = "JunctionConnection "+ roadkey + " lane "+lanekey
                     maxspeed = "30"
-                    print("made junction road: {0} of type {1} at junction id: {2}".format(road.xodrID,road.type,junction))
+                    #print("made junction road: {0} of type {1} at junction id: {2}".format(road.xodrID,road.type,junction))
                     parts[0] +='''
         <road name="{0}" length="{1}" id="{2}" junction="{3}">
             <link>
