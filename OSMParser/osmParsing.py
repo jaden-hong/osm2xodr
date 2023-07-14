@@ -3,7 +3,7 @@ __all__ = ['rNode', 'OSMPreWay', 'OSMWayEndcap', 'OSMWay', 'parseAll', 'createOS
 
 #Cell
 import uuid
-from .utils import createVirtualLastPointForJunctionRoads, convertLongitudeLatitude, giveHeading, convertTopoMap, giveMaxMinLongLat, getDeltaHdg, giveHeight, distance,getXYPositionFromLineLength, setHeights
+from .utils import checkType, getWidth, createVirtualLastPointForJunctionRoads, convertLongitudeLatitude, giveHeading, convertTopoMap, giveMaxMinLongLat, getDeltaHdg, giveHeight, distance,getXYPositionFromLineLength, setHeights
 from .arcCurves import getArcCurvatureAndLength2Point, getArcCurvatureAndLength, endTurn2LaneStreet
 import numpy as np
 from osmread import parse_file, Way, Node
@@ -182,6 +182,9 @@ class rNode:
 
     def evaluateJunction(self):
         if len(self.wayList)>1:
+            # print("evaluate junction 1")
+            # print(self.Connections)
+            # print(self.tags)
             self.Junction = rNode.giveNextElementID()
             jrxs = []
             jrys = []
@@ -206,6 +209,8 @@ class rNode:
     def evaluateJunction2(self):
         #get all way connections in direction relevant from wayX to wayY
         laneconnections = {}
+        #print("evaluate junction 2")
+        #print(self.Connections.keys())
         for wayX in self.Connections.keys():
             wayXisIncoming = True if OSMWay.allWays[wayX].OSMNodes[-1] == self.id else False
             for direc in self.Connections[wayX].keys():
@@ -230,7 +235,12 @@ class rNode:
             keys = key.split("_")
             predecessorway = OSMWay.allWays[keys[0]]
             successorway = OSMWay.allWays[keys[1]]
+            #print(predecessorway.tags,successorway.tags)
+            #print(OSMWay.allWays[])
+
             self.JunctionRoads += JunctionRoad.createJunctionRoadsForConnection(predecessorway,successorway,self)
+        #print(self.JunctionRoads)
+        #** This is where the 
 
     def getRelevantLastPoint(self, way):
         ways = self.incomingWays + self.outgoingWays
@@ -533,9 +543,22 @@ def parseAll(pfad, bildpfad = None, minimumHeight = 0.0, maximumHeight = 100.0, 
     #create streetrNodedict and count rNodeuse
     for entity in parse_file(pfad):
         if isinstance(entity, Way):
+            #print(entity.tags)
+            ''' old definition
             for word in ["highway"]:#, "lanes", "oneway", "cycleway", "foot", "sidewalk",  "footway"]:
                 if word in entity.tags and not "stairs" in entity.tags["highway"] and not "steps" in entity.tags["highway"] and not  "pedestrian" in entity.tags["highway"] and not "elevator" in entity.tags["highway"] and not "footway" in entity.tags["highway"] and not "bridleway" in entity.tags["highway"] and not "cycleway" in entity.tags["highway"] and not "path" in entity.tags["highway"]:
                     OSMPreWay(entity)
+            '''
+
+            ''' juncitons and some roads are broken roads
+            for word in ["highway"]:#, "lanes", "oneway", "cycleway", "foot", "sidewalk",  "footway"]:
+                if word in entity.tags:# and not "stairs" in entity.tags[word] and not "steps" in entity.tags[word] and not  "pedestrian" in entity.tags[word] and not "elevator" in entity.tags[word] and not "footway" in entity.tags[word] and not "bridleway" in entity.tags[word] and not "cycleway" in entity.tags[word] and not "path" in entity.tags[word]:
+                    OSMPreWay(entity)
+            '''
+            for word in ["highway"]:#, "lanes", "oneway", "foot", "sidewalk",  "footway"]: #, "cycleway",
+                if word in entity.tags and not "cycleway" in entity.tags["highway"]:
+                    OSMPreWay(entity)
+            
     for preWay in OSMPreWay.allWays.values():
         preWay._evaluate()
 
@@ -547,8 +570,11 @@ def parseAll(pfad, bildpfad = None, minimumHeight = 0.0, maximumHeight = 100.0, 
         node.evaluateJunction()
     for node in rNode.allrNodes.values(): #createJunctionRoads
         node.evaluateJunction2()
+    
+    #this is where they create da endcaps
     for way in OSMWay.allWays.values():
         way.roadElements, way.elevationElements = createOSMWayNodeList2XODRRoadLine(way)
+
     #for node in rNode.allrNodes.values():
     #    node.createOpenDriveElements(r=curveRadius)
     #    node.createOpenDriveLanesAndInternalRoadConnections()
@@ -705,6 +731,7 @@ class JunctionRoad:
         JunctionRoad.junctionNodes = {}
     @staticmethod
     def giveJunctionDict(junctionNode):
+        #print('hi')
         if junctionNode.Junction in JunctionRoad.junctionNodes:
             return JunctionRoad.junctionNodes[junctionNode.Junction]
         else:
@@ -714,6 +741,7 @@ class JunctionRoad:
     def createJunctionRoadsForConnection(predecessorway,successorway,junctionNode, maxerror=2.0):
         contactPointPredecessor = "start" if predecessorway.OSMNodes[0] == junctionNode.id else "end"
         contactPointSuccessor = "start" if successorway.OSMNodes[0] == junctionNode.id else "end"
+
         roadElements,elevationElements = createOSMJunctionRoadLine(predecessorway,successorway,junctionNode, maxerror=maxerror)
         predecessor2successorLaneConnections = []
         try:
@@ -734,20 +762,24 @@ class JunctionRoad:
             try:
                 if predecessorway.id in successorconnections['Direction']:
                     for connection in successorconnections['Direction'][predecessorway.id]:
-                        self.predecessor2successorLaneConnections.append([connection[1],connectionn[0]])
+                        predecessor2successorLaneConnections.append([connection[1],connection[0]])
             except: pass
             try:
                 if predecessorway.id in successorconnections['Opposite']:
                     for connection in successorconnections['Opposite'][predecessorway.id]:
-                        predecessor2successorLaneConnections.append([connection[1],connectionn[0]])
+                        predecessor2successorLaneConnections.append([connection[1],connection[0]])
             except: pass
         except: pass
         roads = []
         for connection in predecessor2successorLaneConnections:
-            roads.append(JunctionRoad(predecessorway,successorway,connection[0],connection[1],junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements))
+            if checkType(predecessorway.tags) == checkType(successorway.tags):
+                    #print("CHARUE")
+                    roads.append(JunctionRoad(predecessorway,successorway,connection[0],connection[1],junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements,checkType(predecessorway.tags)))
+            else:
+                roads.append(JunctionRoad(predecessorway,successorway,connection[0],connection[1],junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements))
         return roads
-
-    def __init__(self,predecessorway,successorway,startlane,endlane,junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements):
+    def __init__(self,predecessorway,successorway,startlane,endlane,junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements,type="driving"):
+        #** added the laneWidth field
         self.id = str(predecessorway.id)+"_to_"+str(successorway.id)+"_lane_"+str(startlane)+"_to_"+str(endlane)
         self.xodrID = str(rNode.giveNextElementID())
         junctionDict = JunctionRoad.giveJunctionDict(junctionNode)
@@ -764,15 +796,20 @@ class JunctionRoad:
         self.contactPointSuccessor = contactPointSuccessor
         self.roadElements = roadElements
         self.elevationElements = elevationElements
-        self.laneWidth = 4.0
+        self.type = type
+
         length = 0.0
+
+        width = getWidth(type)
+
         for element in self.roadElements:
             length += element["length"]
         predecessorIsBackward = True if self.contactPointPredecessor == "start" else False
         successorIsBackward = True if self.contactPointSuccessor == "end" else False
-        self.laneOffsetA = (abs(self.predecessorlane)-1.0)* np.sign(self.predecessorlane) * self.laneWidth
-        laneOffsetEnd = (abs(self.successorlane)-1.0)* np.sign(self.successorlane) * self.laneWidth
+        self.laneOffsetA = (abs(self.predecessorlane)-1.0)* np.sign(self.predecessorlane) * width
+        laneOffsetEnd = (abs(self.successorlane)-1.0)* np.sign(self.successorlane) * width
         self.laneOffsetB = -(self.laneOffsetA-laneOffsetEnd)/length
+
 
 
 #Cell

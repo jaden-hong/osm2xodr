@@ -5,7 +5,7 @@ __all__ = ['startBasicXODRFile', 'fillNormalRoads', 'fillJunctionRoads']
 #Cell
 from math import floor, pi
 import numpy as np
-from .utils import checkType, checkTypeJ, getWidth, giveHeading, distance,schnittpunkt,getXYPositionFromLineLength, giveReferences
+from .utils import giveHeading, distance,schnittpunkt,getXYPositionFromLineLength, giveReferences
 from .arcCurves import giveHeading,getArcEndposition,distance,schnittpunkt,getArcCurvatureAndLength,getXYPositionFromLineLength,getArcCurvatureAndLength2Point,endTurn2LaneStreet
 from .osmParsing import parseAll,rNode, OSMWay,JunctionRoad, OSMWayEndcap, createOSMJunctionRoadLine, createOSMWayNodeList2XODRRoadLine, JunctionRoad, createEndCap
 #from osm2xods.testing import TestEntity, _test_nodes, testSimpleRoad, test_3WayTCrossing2
@@ -27,26 +27,18 @@ def startBasicXODRFile(path = 'Test.xodr'):
 </OpenDRIVE>
     '''.format(ymax-ymin, 0.0, xmax-xmin, 0.0, referenceLat, referenceLon))
 
-
 #Cell
 def fillNormalRoads(path = 'Test.xodr'):
-    #parts is each string of the road
-    #for loop creates the whole list of xodr data, then after it ges joined together
-
     filedata = ""
     with open(path,'r',encoding='utf-8') as file:
           filedata = file.read()
     parts = filedata.split("<!-- nextRoad -->")
-    #print(parts)
     for road in OSMWay.allWays.values():
-        #print(road.tags)
         # create geometry
         geometry = ""
         lengths = []
-
         for element in road.roadElements:
             lengths.append(element["length"])
-            #storing geometry values into string
             geometry += '''
             <geometry s="{0}" x="{1}" y="{2}" hdg="{3}" length="{4}">'''.format(sum(lengths[:-1]), element["xstart"],
                                                                                element["ystart"], element["heading"],
@@ -54,11 +46,8 @@ def fillNormalRoads(path = 'Test.xodr'):
                 <line/>''' if element["curvature"] == 0.0 else '''
                 <arc curvature="{0}"/>'''.format(element["curvature"])) + '''
             </geometry>'''
-
         lengths = []
         elevation = ""
-        
-        
         # create elevation
         for element in road.elevationElements:
             lengths.append(element["length"])
@@ -72,52 +61,28 @@ def fillNormalRoads(path = 'Test.xodr'):
         try: maxspeed = road.tags["maxspeed"]
         except: pass
         #add road string
-        #a is the width of road
         leftlanes = ""
         leftlanenumber = 1
-
-        """
-        note that ''' '''  represents a string, useful for having multiple lines
-        {number} represents the %s, like %.2f in java
-
-
-        can edit the "driving", "level"?
-        a value (width)
-        
-        in this code, parts is a list of strings, only ever 2 in length. at the end of each for loop iteration
-        the road information is added to the 0 index. then at the very end, they are combined (for use with
-        the other junction function)
-        
-        """
-
         for i in range(road.laneNumberOpposite):
-            #print("made road w. id: {0} and of type {1}".format(leftlanenumber,checkType(road.tags)))
             leftlanes += '''
-                        <lane id="{0}" type="{1}" level="false">
+                        <lane id="{0}" type="driving" level="false">
                                         <link>
                                         </link>
-                                        <width sOffset="0.0" a="{2}e+00" b="0.0" c="0.00" d="0.00"/> 
-                                        <roadMark sOffset="0.00" type="{3}" material="standard" color="white" laneChange="none"/>
-                        </lane>'''.format(leftlanenumber, checkType(road.tags), str(getWidth(checkType(road.tags))),"solid" if leftlanenumber == road.laneNumberOpposite else "broken")
+                                        <width sOffset="0.0" a="4.00e+00" b="0.0" c="0.00" d="0.00"/>
+                                        <roadMark sOffset="0.00" type="{1}" material="standard" color="white" laneChange="none"/>
+                        </lane>'''.format(leftlanenumber, "solid" if leftlanenumber == road.laneNumberOpposite else "broken")
             leftlanenumber += 1
-
-
-
         rightlanes = ""
         rightlanenumber = -1
-
         for i in range(road.laneNumberDirection):
-            #print("made road w. id: {0} and of type {1}".format(rightlanenumber,checkType(road.tags)))
             rightlanes += '''
-                        <lane id="{0}" type="{1}" level="false">
+                        <lane id="{0}" type="driving" level="false">
                                         <link>
                                         </link>
-                                        <width sOffset="0.0" a="{2}e+00" b="0.0" c="0.00" d="0.00"/>
-                                        <roadMark sOffset="0.00" type="{3}" material="standard" color="white" laneChange="none"/>
-                        </lane>'''.format(rightlanenumber, checkType(road.tags), str(getWidth(checkType(road.tags))), "solid" if rightlanenumber == -road.laneNumberDirection else "broken")
+                                        <width sOffset="0.0" a="4.00e+00" b="0.0" c="0.00" d="0.00"/>
+                                        <roadMark sOffset="0.00" type="{1}" material="standard" color="white" laneChange="none"/>
+                        </lane>'''.format(rightlanenumber, "solid" if rightlanenumber == -road.laneNumberDirection else "broken")
             rightlanenumber -= 1
-
-
 
         parts[0] +='''
         <road name="{0}" length="{1}" id="{2}" junction="-1">
@@ -154,20 +119,6 @@ def fillNormalRoads(path = 'Test.xodr'):
 
 #Cell
 def fillJunctionRoads(path = 'Test.xodr'):
-    
-    #print(JunctionRoad.junctionNodes.keys())
-
-
-    """
-    in this function, 
-    first part is to split up into: 
-    
-    parts[0] beginning to end fo road definitions
-    parts[1] has <header>of junctions
-    parts[2] has the end header
-
-
-    """
     filedata = ""
     with open(path,'r',encoding='utf-8') as file:
           filedata = file.read()
@@ -175,31 +126,16 @@ def fillJunctionRoads(path = 'Test.xodr'):
     secondsplits = parts[1].split("<!-- nextJunction -->")
     parts[1] = secondsplits[0]
     parts.append(secondsplits[1])
-    # print(parts[1])
-    # print("next!!!!!")
-    # print(parts[2])
-
-
-    #the keys are id for the junctions
-
     for junction in JunctionRoad.junctionNodes.keys():
         # create junction start
         parts[1] += '''
         <junction id="{0}" name="{1}">'''.format(str(junction),"junction "+str(junction))
-        
-        #resets the connectionID to 1 for each iteration
         connectionID = 1
-
-
         for roadkey in JunctionRoad.junctionNodes[junction].keys():
             incomingRoad,outgoingRoad = roadkey.split("_to_")
             for lanekey in JunctionRoad.junctionNodes[junction][roadkey].keys():
                     fromLane,toLane = lanekey.split("_to_")
-                    #laneWidth = lanekey.
                     road = JunctionRoad.junctionNodes[junction][roadkey][lanekey]
-                    #print(JunctionRoad.junctionNodes[junction])
-                    #print(road.type)
-                    #type = JunctionRoad.junctionNodes[]
                     #create connection
                     parts[1] += '''
                     <connection id="{0}" incomingRoad="{1}" connectingRoad="{2}" contactPoint="{3}">
@@ -230,7 +166,6 @@ def fillJunctionRoads(path = 'Test.xodr'):
 
                     name = "JunctionConnection "+ roadkey + " lane "+lanekey
                     maxspeed = "30"
-                    print("made junction road: {0} of type {1} at junction id: {2}".format(road.xodrID,road.type,junction))
                     parts[0] +='''
         <road name="{0}" length="{1}" id="{2}" junction="{3}">
             <link>
@@ -260,18 +195,14 @@ def fillJunctionRoads(path = 'Test.xodr'):
                                 <predecessor id="{0}"/>
                                 <successor id="{1}"/>
                             </link>
-                            <width sOffset="0.0" a="{2}e+00" b="0.0" c="0.00" d="0.00"/>
+                            <width sOffset="0.0" a="4.00e+00" b="0.0" c="0.00" d="0.00"/>
                             <roadMark sOffset="0.00" type="none" material="standard" color="white" laneChange="none"/>
                         </lane>
                     </right>
                 </laneSection>
             </lanes>
         </road>
-        '''.format(fromLane,toLane,str(getWidth(road.type)))
-        #print(road.type,getWidth(road.type))
-        #need to adjust this code here!
-
-
+        '''.format(fromLane,toLane)
         #close junction
         parts[1] += '''
         </junction>
@@ -281,4 +212,3 @@ def fillJunctionRoads(path = 'Test.xodr'):
 
     with open(path,'w',encoding='utf-8') as f:
             f.write(whole)
-

@@ -4,11 +4,12 @@ from OSMParser.testing import TestEntity, _test_nodes, testSimpleRoad, test_3Way
 from OSMParser.osmParsing import parseAll,rNode, OSMWay,JunctionRoad, OSMWayEndcap, createOSMJunctionRoadLine, createOSMWayNodeList2XODRRoadLine
 from OSMParser.xodrWriting import startBasicXODRFile,fillNormalRoads,fillJunctionRoads
 
-osmPfad = 'map.osm'
-topographieKartenPfad = 'topomap.png'
-xodrPfad = 'output.xodr'
+osmPfad = r'C:\Users\jhong324\Documents\RESEARCH\osm\western2.osm'
+#topographieKartenPfad = ''
+xodrPfad = r'C:\Users\jhong324\Documents\RESEARCH\xodr\western2.1.xodr'
 
-parseAll(osmPfad, bildpfad=topographieKartenPfad, minimumHeight = 163.0, maximumHeight= 192.0, curveRadius=12)
+#parseAll(osmPfad, bildpfad=topographieKartenPfad, minimumHeight = 163.0, maximumHeight= 192.0, curveRadius=12)
+parseAll(osmPfad, minimumHeight = 163.0, maximumHeight= 192.0, curveRadius=12)
 
 startBasicXODRFile(xodrPfad)
 fillNormalRoads(xodrPfad)
