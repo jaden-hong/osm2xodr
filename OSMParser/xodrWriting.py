@@ -5,7 +5,7 @@ __all__ = ['startBasicXODRFile', 'fillNormalRoads', 'fillJunctionRoads']
 #Cell
 from math import floor, pi
 import numpy as np
-from .utils import checkType, getWidth, giveHeading, distance,schnittpunkt,getXYPositionFromLineLength, giveReferences
+from .utils import checkOneWay, OpenDriveType, checkType, getWidth, giveHeading, distance,schnittpunkt,getXYPositionFromLineLength, giveReferences
 from .arcCurves import giveHeading,getArcEndposition,distance,schnittpunkt,getArcCurvatureAndLength,getXYPositionFromLineLength,getArcCurvatureAndLength2Point,endTurn2LaneStreet
 from .osmParsing import parseAll,rNode, OSMWay,JunctionRoad, OSMWayEndcap, createOSMJunctionRoadLine, createOSMWayNodeList2XODRRoadLine, JunctionRoad, createEndCap
 #from osm2xods.testing import TestEntity, _test_nodes, testSimpleRoad, test_3WayTCrossing2
@@ -90,6 +90,7 @@ def fillNormalRoads(path = 'Test.xodr'):
         
         """
 
+        print(road.tags,road.laneNumberDirection,road.laneNumberOpposite)
         for i in range(road.laneNumberOpposite):
             
             leftlanes += '''
@@ -98,7 +99,7 @@ def fillNormalRoads(path = 'Test.xodr'):
                                         </link>
                                         <width sOffset="0.0" a="{2}e+00" b="0.0" c="0.00" d="0.00"/> 
                                         <roadMark sOffset="0.00" type="{3}" material="standard" color="white" laneChange="none"/>
-                        </lane>'''.format(leftlanenumber, checkType(road.tags), str(getWidth(checkType(road.tags))),"solid" if leftlanenumber == road.laneNumberOpposite else "broken")
+                        </lane>'''.format(leftlanenumber, OpenDriveType(checkType(road)), str(getWidth(checkType(road))),"solid" if leftlanenumber == road.laneNumberOpposite else "broken")
             leftlanenumber += 1
 
 
@@ -114,7 +115,7 @@ def fillNormalRoads(path = 'Test.xodr'):
                                         </link>
                                         <width sOffset="0.0" a="{2}e+00" b="0.0" c="0.00" d="0.00"/>
                                         <roadMark sOffset="0.00" type="{3}" material="standard" color="white" laneChange="none"/>
-                        </lane>'''.format(rightlanenumber, checkType(road.tags), str(getWidth(checkType(road.tags))), "solid" if rightlanenumber == -road.laneNumberDirection else "broken")
+                        </lane>'''.format(rightlanenumber, OpenDriveType(checkType(road)), checkOneWay(road,str(getWidth(checkType(road)))), "solid" if rightlanenumber == -road.laneNumberDirection else "broken")
             rightlanenumber -= 1
 
 
@@ -256,19 +257,20 @@ def fillJunctionRoads(path = 'Test.xodr'):
                         </lane>
                     </center>
                     <right>
-                        <lane id="-1" type="driving" level="false">
+                        <lane id="-1" type="{0}" level="false">
                             <link>
-                                <predecessor id="{0}"/>
-                                <successor id="{1}"/>
+                                <predecessor id="{1}"/>
+                                <successor id="{2}"/>
                             </link>
-                            <width sOffset="0.0" a="{2}e+00" b="0.0" c="0.00" d="0.00"/>
+                            <width sOffset="0.0" a="{3}e+00" b="0.0" c="0.00" d="0.00"/>
                             <roadMark sOffset="0.00" type="none" material="standard" color="white" laneChange="none"/>
                         </lane>
                     </right>
                 </laneSection>
             </lanes>
         </road>
-        '''.format(fromLane,toLane,str(getWidth(road.type)))
+        '''.format(OpenDriveType(road.type),fromLane,toLane,str(getWidth(road.type)))
+
         #print(road.type,getWidth(road.type))
         #need to adjust this code here!
 

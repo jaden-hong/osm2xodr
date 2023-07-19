@@ -18,8 +18,9 @@ transformer = None#Transformer.from_crs(crs_4326, crs_3395)
 
 
 #Cell
-def checkType(value):
-	result = "idk"
+def checkType(val):
+	value = val.tags
+
 	if "highway" in value:
 		roadType = value["highway"]
 
@@ -41,55 +42,101 @@ def checkType(value):
 							
 			return "sidewalk"
 		elif roadType == "residential" or roadType == "tertiary" or roadType == "service" or roadType == "secondary":
-			return "driving"
-	#print("COULD NOT ASSIGN :(")
-	return "driving"
+				if roadType == "service":
+					return "service"
+				else:
+					return "driving"
+	print("COULD NOT ASSIGN :(")
+	return "idk"
+
+##***CAN INTEGRATE DIFFERENT LANE WIDTHS THIS WAY (using opedrivetype to determine xodr type)
+
+def checkOneWay(road,width):
+
+	if "oneway" in road.tags:
+		print("one way detected! doing da magic lane trick")
+
+	else:
+		return width
+
+
+def OpenDriveType(value):
+	if value == "steps":
+		return "footway"
+	elif value == "service":
+		return "driving"
+	return value
 
 def notDriveWalk(road1,road2):
 	'''
-	returns true if the road predecessor and sucessor road are not driving -> footway
+	returns true if the road predecessor and sucessor road are not driving / service -> footway
 	'''
-	flag = True
+	#flags for road1 and road2
+	r1 = True
+	r2 = True
+	walkOnly = ["sidewalk","crosswalk","steps"]
+	driveOnly = ["driving","service"]
+	flag = False
+	
+	for type in driveOnly:
+		if road1 == type:
+			r1 = True
+			break
+		else:
+			r1 = False
+
+	for type in driveOnly:
+		if road2 == type:
+			r2 = True
+			break
+		else:
+			r2 = False
+
+	flag = r1==r2
+	return flag
+	'''
 	if road1 == 'driving' and road2 != 'driving':
 		flag = False
 	elif road2 == 'driving' and road1 != 'driving':
 		flag = False
-
+	'''
 	return flag
 
 def getWidth(val):
+	width = 0.75
+	if val == "sidewalk":
 		width = 0.75
-		if val == "sidewalk":
-				width = 0.75
-		elif val == "crosswalk":
-				width = 0.75
-		elif val == "steps":
-				width = 10
-		elif val == "driving":
-				width = 4.0
-		return width
+	elif val == "crosswalk":
+		width = 0.75
+	elif val == "steps":
+		width = 10.0
+	elif val == "driving":
+		width = 4.0
+	elif val == "service":
+		width = 1.5
+	return width
 
 def giveHeading(x1,y1,x2,y2):
-		assert not (x1==x2 and y1==y2), "Can't give heading without a direction"
-		x = [x1,x2]
-		y = [y1,y2]
-		x_arr=np.array(x)-x[0]
-		y_arr=np.array(y)-y[0]
-		#rotate to initial approximately 0
-		#umrechnen in polarkoordinaten des ersten abstandes
-		if x_arr[1] > 0:
-					phi = np.arctan(y_arr[1]/x_arr[1])
-		elif x_arr[1] == 0:
-					if y_arr[1] > 0:
-							phi = np.pi/2
-					else:
-							phi = -np.pi/2
+	assert not (x1==x2 and y1==y2), "Can't give heading without a direction"
+	x = [x1,x2]
+	y = [y1,y2]
+	x_arr=np.array(x)-x[0]
+	y_arr=np.array(y)-y[0]
+	#rotate to initial approximately 0
+	#umrechnen in polarkoordinaten des ersten abstandes
+	if x_arr[1] > 0:
+		phi = np.arctan(y_arr[1]/x_arr[1])
+	elif x_arr[1] == 0:
+		if y_arr[1] > 0:
+			phi = np.pi/2
 		else:
-					if y_arr[1] >= 0:
-							phi = np.arctan(y_arr[1]/x_arr[1])+np.pi
-					else:
-							phi = np.arctan(y_arr[1]/x_arr[1])-np.pi
-		return getPositiveHeading(phi)
+			phi = -np.pi/2
+	else:
+		if y_arr[1] >= 0:
+			phi = np.arctan(y_arr[1]/x_arr[1])+np.pi
+		else:
+			phi = np.arctan(y_arr[1]/x_arr[1])-np.pi
+	return getPositiveHeading(phi)
 
 
 #Cell
@@ -171,6 +218,7 @@ def convertTopoMap(topomappath, osmpath):
 				topomap=np.rot90(topomap)
 				topomap=np.rot90(topomap)
 		topoParameter = giveMaxMinLongLat(osmpath)
+		print(topomap)
 		return topoParameter
 
 global maximumheight, minimumheight
