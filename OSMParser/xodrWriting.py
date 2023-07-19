@@ -90,7 +90,7 @@ def fillNormalRoads(path = 'Test.xodr'):
         
         """
 
-        print(road.tags,road.laneNumberDirection,road.laneNumberOpposite)
+        #print(road.tags,road.laneNumberDirection,road.laneNumberOpposite)
         for i in range(road.laneNumberOpposite):
             
             leftlanes += '''
@@ -99,7 +99,7 @@ def fillNormalRoads(path = 'Test.xodr'):
                                         </link>
                                         <width sOffset="0.0" a="{2}e+00" b="0.0" c="0.00" d="0.00"/> 
                                         <roadMark sOffset="0.00" type="{3}" material="standard" color="white" laneChange="none"/>
-                        </lane>'''.format(leftlanenumber, OpenDriveType(checkType(road)), str(getWidth(checkType(road))),"solid" if leftlanenumber == road.laneNumberOpposite else "broken")
+                        </lane>'''.format(leftlanenumber, OpenDriveType(checkType(road)), str(getWidth(checkType(road))),"solid" if leftlanenumber == road.laneNumberOpposite else "broken")   # checkOneWay(road,str(getWidth(checkType(road))),leftlanenumber,road.laneNumberOpposite),"solid" if leftlanenumber == road.laneNumberOpposite else "broken")
             leftlanenumber += 1
 
 
@@ -115,11 +115,11 @@ def fillNormalRoads(path = 'Test.xodr'):
                                         </link>
                                         <width sOffset="0.0" a="{2}e+00" b="0.0" c="0.00" d="0.00"/>
                                         <roadMark sOffset="0.00" type="{3}" material="standard" color="white" laneChange="none"/>
-                        </lane>'''.format(rightlanenumber, OpenDriveType(checkType(road)), checkOneWay(road,str(getWidth(checkType(road)))), "solid" if rightlanenumber == -road.laneNumberDirection else "broken")
+                        </lane>'''.format(rightlanenumber, OpenDriveType(checkType(road)), checkOneWay(road,(getWidth(checkType(road))),rightlanenumber,road.laneNumberDirection), "solid" if rightlanenumber == -road.laneNumberDirection else "broken")
             rightlanenumber -= 1
 
 
-
+            
         #print("made road w. id: {0} and of type {1}".format(road.xodrID,checkType(road.tags)))
         parts[0] +='''
         <road name="{0}" length="{1}" id="{2}" junction="-1">

@@ -51,11 +51,21 @@ def checkType(val):
 
 ##***CAN INTEGRATE DIFFERENT LANE WIDTHS THIS WAY (using opedrivetype to determine xodr type)
 
-def checkOneWay(road,width):
-
+def checkOneWay(road,width,laneNum,maxLane):
+	'''
+	function to make sure one way lanes are formed properly
+	'''
+	print(road.tags)
 	if "oneway" in road.tags:
-		print("one way detected! doing da magic lane trick")
-
+		if 'yes' in road.tags["oneway"]:
+			print("one way detected! doing da magic lane trick")
+			
+			if maxLane%2==0:
+				val = width * (-1)**laneNum
+			else:
+				val = width * (-1)**laneNum/2
+			print(val)
+			return val
 	else:
 		return width
 
