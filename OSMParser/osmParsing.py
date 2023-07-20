@@ -42,6 +42,15 @@ class rNode:
         try: self.height = giveHeight(self.x, self.y, minRemoved=True)
         except: self.height = 0.0
 
+
+
+
+        #print(self.x,self.y,self.tags)
+
+
+
+
+
         self.Junction = ""
         self.JunctionRoads = []
         self.wayList = []
@@ -79,6 +88,7 @@ class rNode:
         return turnIdxToIncoming, turnIdxToOutgoing
 
     #**WILL NEED TO EDIT THIS TO DISABLE NO TURN TO DIFFERENT road type
+    #done!
 
     def giveTurnPossibilities(self, incomingWay):
         '''Gives the Angles, Lanes, Ways, rNodes and Directions of all valid Turns from a Way as an incoming Way'''
@@ -267,6 +277,7 @@ class OSMPreWay:
     def reset():
         OSMPreWay.allWays = {}
 
+    #init adds the object to allways object
     def __init__(self,entity, register = True, debug=False):
         if debug:
             self.id = str(uuid.uuid1())
@@ -547,17 +558,25 @@ class OSMWay:
 
 #Cell
 def parseAll(pfad, bildpfad = None, minimumHeight = 0.0, maximumHeight = 100.0, curveRadius=8):
+    
+    #for figuring out the topographic map
     global topoParameter
     setHeights(minimumHeight, maximumHeight)
     if bildpfad is not None:
         topoParameter = convertTopoMap(bildpfad, pfad)
     else:
         topoParameter = convertTopoMap(None, pfad)
+
+
     #create rNodedict with counter
     for entity in parse_file(pfad):
         if isinstance(entity, Node):
             #if minLongitude <entity.lon< maxLongitude and minLatitude <entity.lat< maxLatitude:   # approximate longitude and latitude of Wuppertal
                  rNode(entity, substractMin=topoParameter)
+
+    #** creates all the rNodes ( for use of creating the roads ?)
+
+
     #create streetrNodedict and count rNodeuse
     for entity in parse_file(pfad):
         if isinstance(entity, Way):
@@ -577,7 +596,8 @@ def parseAll(pfad, bildpfad = None, minimumHeight = 0.0, maximumHeight = 100.0, 
                 if word in entity.tags and not "cycleway" in entity.tags["highway"]: #and not "service" in entity.tags["highway"]:
                     #print(entity.tags)
                     OSMPreWay(entity)
-            
+    
+    #evaluate all the osmPreWay objects (pre is b4 the creation of the actual objects)
     for preWay in OSMPreWay.allWays.values():
         preWay._evaluate()
 
@@ -601,6 +621,12 @@ def parseAll(pfad, bildpfad = None, minimumHeight = 0.0, maximumHeight = 100.0, 
     #    node.connectOpenDriveLanes()
 
 #Cell
+'''
+I NEED TO EDIT THIS BOI !
+
+'''
+
+
 def createOSMWayNodeList2XODRRoadLine(way, maxerror=2.0):
     Points = []
     hdgs = []
@@ -609,7 +635,11 @@ def createOSMWayNodeList2XODRRoadLine(way, maxerror=2.0):
 
     #prepare raw points
     #first element:
+
     firstNode = rNode.allrNodes[way.OSMNodes[0]]
+
+    
+
     if len(firstNode.wayList) == 1:  #firstnode ist sackgasse
         #createEndCap
         createEndCap(way,[firstNode.x,firstNode.y],giveHeading(rNode.allrNodes[way.OSMNodes[1]].x,rNode.allrNodes[way.OSMNodes[1]].y,firstNode.x,firstNode.y),isStartPoint = True)
@@ -641,6 +671,13 @@ def createOSMWayNodeList2XODRRoadLine(way, maxerror=2.0):
         x,y = lastNode.getRelevantLastPoint(way)
         Points.append([x,y,giveHeight(x,y,minRemoved = True)])
         hdgs.append(giveHeading(x,y,lastNode.x,lastNode.y))
+
+
+    ##this is where all the geometry is found ?/
+    print(firstNode.x,firstNode.y,lastNode.x,lastNode.y)
+
+
+
 
     if len(Points) == 2:
         #junction to junction -> Points can be the same!
