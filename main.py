@@ -6,7 +6,11 @@ from OSMParser.xodrWriting import startBasicXODRFile,fillNormalRoads,fillJunctio
 
 osmPfad = r'C:\Users\jhong324\Documents\RESEARCH\osm\westernNeighbourhood2.osm'
 #topographieKartenPfad = ''
-xodrPfad = r'C:\Users\jhong324\Documents\RESEARCH\xodr\westernNeighbourhood2.1.xodr'
+xodrPfad = r'C:\Users\jhong324\Documents\RESEARCH\xodr\westernNeighbourhood2.2.xodr'
+
+# osmPfad = r'C:\Users\jhong324\Documents\RESEARCH\osm\westernNeighbourhood2.osm'
+# #topographieKartenPfad = ''
+# xodrPfad = r'C:\Users\jhong324\Documents\RESEARCH\xodr\westernNeighbourhood2.1.xodr'
 
 #parseAll(osmPfad, bildpfad=topographieKartenPfad, minimumHeight = 163.0, maximumHeight= 192.0, curveRadius=12)
 parseAll(osmPfad, minimumHeight = 163.0, maximumHeight= 192.0, curveRadius=12)

@@ -123,7 +123,9 @@ def fillNormalRoads(path = 'Test.xodr'):
             rightlanenumber -= 1
 
 
-            
+        #checkOneWay function needs to be edited
+
+
         #print("made road w. id: {0} and of type {1}".format(road.xodrID,checkType(road.tags)))
         parts[0] +='''
         <road name="{0}" length="{1}" id="{2}" junction="-1">
@@ -140,9 +142,9 @@ def fillNormalRoads(path = 'Test.xodr'):
         <elevationProfile>''' + elevation + '''
         </elevationProfile>
              <lanes>
-                <laneOffset s="0.0" a="0.0" b="0.0" c="0.0" d="0.0"/>
+                <laneOffset s="0.0" a="{0}" b="0.0" c="0.0" d="0.0"/>
                 <laneSection s="0.0">
-                    <left>'''+leftlanes+'''
+                    <left>'''.format(str(road.laneOffset))+leftlanes+'''
                     </left>
                     <center>
                         <lane id="0" type="none" level="false">
@@ -253,7 +255,7 @@ def fillJunctionRoads(path = 'Test.xodr'):
         <elevationProfile>''' + elevation + '''
         </elevationProfile>
              <lanes>
-                <laneOffset s="0.0" a="{0}" b="{1}" c="0.0" d="0.0"/>'''.format(road.laneOffsetA, road.laneOffsetB) + '''
+                <laneOffset s="0.0" a="{0}" b="{1}" c="0.0" d="0.0"/>'''.format(road.laneOffsetA,"0.0") + '''
                 <laneSection s="0.0">
                      <center>
                         <lane id="0" type="none" level="false">
@@ -274,6 +276,9 @@ def fillJunctionRoads(path = 'Test.xodr'):
             </lanes>
         </road>
         '''.format(OpenDriveType(road.type),fromLane,toLane,str(getWidth(road.type)))
+
+        #road.laneOffsetA, road.laneOffsetB
+
 
         #print(road.type,getWidth(road.type))
         #need to adjust this code here!
