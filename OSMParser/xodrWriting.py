@@ -5,7 +5,7 @@ __all__ = ['startBasicXODRFile', 'fillNormalRoads', 'fillJunctionRoads']
 #Cell
 from math import floor, pi
 import numpy as np
-from .utils import checkOneWay, OpenDriveType, checkType, getWidth, giveHeading, distance,schnittpunkt,getXYPositionFromLineLength, giveReferences
+from .utils import OpenDriveType, checkType, getWidth, giveHeading, distance,schnittpunkt,getXYPositionFromLineLength, giveReferences
 from .arcCurves import giveHeading,getArcEndposition,distance,schnittpunkt,getArcCurvatureAndLength,getXYPositionFromLineLength,getArcCurvatureAndLength2Point,endTurn2LaneStreet
 from .osmParsing import parseAll,rNode, OSMWay,JunctionRoad, OSMWayEndcap, createOSMJunctionRoadLine, createOSMWayNodeList2XODRRoadLine, JunctionRoad, createEndCap
 #from osm2xods.testing import TestEntity, _test_nodes, testSimpleRoad, test_3WayTCrossing2
@@ -37,7 +37,11 @@ def fillNormalRoads(path = 'Test.xodr'):
     with open(path,'r',encoding='utf-8') as file:
           filedata = file.read()
     parts = filedata.split("<!-- nextRoad -->")
+
     #print(parts)
+    #print(OSMWay.allWays.)
+    
+    
     for road in OSMWay.allWays.values():
         #print(road.tags)
         # create geometry
@@ -115,7 +119,7 @@ def fillNormalRoads(path = 'Test.xodr'):
                                         </link>
                                         <width sOffset="0.0" a="{2}e+00" b="0.0" c="0.00" d="0.00"/>
                                         <roadMark sOffset="0.00" type="{3}" material="standard" color="white" laneChange="none"/>
-                        </lane>'''.format(rightlanenumber, OpenDriveType(checkType(road)), checkOneWay(road,(getWidth(checkType(road))),rightlanenumber,road.laneNumberDirection), "solid" if rightlanenumber == -road.laneNumberDirection else "broken")
+                        </lane>'''.format(rightlanenumber, OpenDriveType(checkType(road)), str(getWidth(checkType(road))), "solid" if rightlanenumber == -road.laneNumberDirection else "broken")
             rightlanenumber -= 1
 
 

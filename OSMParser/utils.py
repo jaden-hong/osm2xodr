@@ -50,11 +50,11 @@ def checkType(val):
 	return "idk"
 
 ##***CAN INTEGRATE DIFFERENT LANE WIDTHS THIS WAY (using opedrivetype to determine xodr type)
-
+'''
 def checkOneWay(road,width,laneNum,maxLane):
-	'''
+	## DOES NOT WORK
 	function to make sure one way lanes are formed properly
-	'''
+	
 	print(road.tags)
 	if "oneway" in road.tags:
 		if 'yes' in road.tags["oneway"]:
@@ -68,7 +68,7 @@ def checkOneWay(road,width,laneNum,maxLane):
 			return val
 	else:
 		return width
-
+'''
 
 def OpenDriveType(value):
 	if value == "steps":
@@ -228,7 +228,7 @@ def convertTopoMap(topomappath, osmpath):
 				topomap=np.rot90(topomap)
 				topomap=np.rot90(topomap)
 		topoParameter = giveMaxMinLongLat(osmpath)
-		print(topomap)
+		#print(topomap)
 		return topoParameter
 
 global maximumheight, minimumheight
