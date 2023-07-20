@@ -70,6 +70,7 @@ def checkOneWay(road,width,laneNum,maxLane):
 		return width
 '''
 
+
 def OpenDriveType(value):
 	if value == "steps":
 		return "footway"
@@ -121,7 +122,7 @@ def getWidth(val):
 	elif val == "steps":
 		width = 10.0
 	elif val == "driving":
-		width = 4.0
+		width = 3.0
 	elif val == "service":
 		width = 1.5
 	return width
