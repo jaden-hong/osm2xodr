@@ -42,14 +42,7 @@ class rNode:
 		try: self.height = giveHeight(self.x, self.y, minRemoved=True)
 		except: self.height = 0.0
 
-
-
-
 		#print(self.x,self.y,self.tags)
-
-
-
-
 
 		self.Junction = ""
 		self.JunctionRoads = []
@@ -77,6 +70,7 @@ class rNode:
 		turnIdxToIncoming = []
 		turnIdxToOutgoing = []
 		if Way in self.incomingWays or Way in self.outgoingWays:
+			
 			for incIdx in range(len(self.incomingWays)):
 				if Way != self.incomingWays[incIdx]:     # no U-Turn
 					if self.incomingLanesOpposite[incIdx] > 0:  # no Turning in One-Way Streets
@@ -96,13 +90,16 @@ class rNode:
 		turnsOut = []
 		selfHeading = 0
 		if incomingWay in self.incomingWays: # no turn possibilities for a not really incoming way (way with no incoming lanes)
+			#print(incomingWay.tags)
 			if self.incomingLanes[self.incomingWays.index(incomingWay)] == 0:
 				return{'Angles':[],'rNodes': [],'Lanes': [],'Ways': [],'WayDirection': []}
 		elif incomingWay in self.outgoingWays:
+			#print(incomingWay.tags)
 			if self.outgoingLanesOpposite[self.outgoingWays.index(incomingWay)] == 0:
 				return{'Angles':[],'rNodes': [],'Lanes': [],'Ways': [],'WayDirection': []}
-
+	
 		incIdx, outIdx = self._givePossibleTurnIdxs(incomingWay)
+
 		if incomingWay in self.incomingWays:
 			selfincrNode = self.incomingrNodes[self.incomingWays.index(incomingWay)]
 		elif incomingWay in self.outgoingWays:
@@ -116,11 +113,31 @@ class rNode:
 			nodeHeading = giveHeading(self.x, self.y, self.outgoingrNodes[outIdx[i]].x, self.outgoingrNodes[outIdx[i]].y)
 			turn = getDeltaHdg(selfHeading,nodeHeading)
 			turnsOut.append(turn)
-		return {'Angles':turnsInc+turnsOut,
-				'rNodes': [self.incomingrNodes[i] for i in incIdx]+[self.outgoingrNodes[i] for i in outIdx],
-				'Lanes': [self.incomingLanesOpposite[i] for i in incIdx]+[self.outgoingLanes[i] for i in outIdx],
-				'Ways': [self.incomingWays[i] for i in incIdx]+[self.outgoingWays[i] for i in outIdx],
-				'WayDirection': [False]*len(turnsInc)+[True]*len(turnsOut)}
+
+		value =	{'Angles':turnsInc+turnsOut,
+			'rNodes': [self.incomingrNodes[i] for i in incIdx]+[self.outgoingrNodes[i] for i in outIdx],
+			'Lanes': [self.incomingLanesOpposite[i] for i in incIdx]+[self.outgoingLanes[i] for i in outIdx],
+			'Ways': [self.incomingWays[i] for i in incIdx]+[self.outgoingWays[i] for i in outIdx],
+			'WayDirection': [False]*len(turnsInc)+[True]*len(turnsOut)}
+
+		# try:
+		# 	wayType = checkType(value["Ways"][0])
+		# except:
+		# 	pass
+		# flag = True
+
+		# for ways in value['Ways']:
+		# 	if wayType!=checkType(ways):
+		# 		flag = False
+
+		# return value if flag else {'Angles':[],'rNodes': [],'Lanes': [],'Ways': [],'WayDirection': []}
+		return value
+
+
+	'''
+	need to edit the junctions so turns into one way roads are not possible
+	'''
+
 
 	def createConnections(self, Way):
 		'''Creates Laneconnections ([Lane, successorLane]) of the way for all successors and stores them in self.Connections[Way][Successorway].
@@ -137,7 +154,7 @@ class rNode:
 			wayIdx = self.outgoingWays.index(Way)
 			lanenumbers = self.outgoingLanesOpposite[wayIdx]
 		turnPossibilities = self.giveTurnPossibilities(Way)
-		#print(turnPossibilities)
+
 		sortangles = copy.copy(turnPossibilities['Angles'])
 		sortidx = sorted(range(len(sortangles)), key=lambda k: sortangles[k])
 		sortangles.sort()
@@ -198,7 +215,9 @@ class rNode:
 		if len(self.wayList)>1:
 			# print("evaluate junction 1")
 			# print(self.Connections)
-			# print(self.tags)
+
+			#print(self.wayList)
+			
 			self.Junction = rNode.giveNextElementID()
 			jrxs = []
 			jrys = []
@@ -299,6 +318,8 @@ class OSMPreWay:
 				   rNode.allrNodes[str(node)]._PreWayIdList.append(str(self.id))
 
 	def _evaluate(self):
+		#print(self.tags)
+
 		startIdx = 0
 		endIdx = -1
 		if len(self.rNodes) < 2:
@@ -352,6 +373,7 @@ class OSMWayEndcap:
 		self.JunctionRoads = []
 		startLane = 0
 		endLane = 0
+		# print(way.tags)
 		#all startlanes have to go somewhere
 		for i in range(self.lanesStart):
 			startLane += 1
@@ -360,7 +382,7 @@ class OSMWayEndcap:
 				endLane = self.lanesEnd
 			self.JunctionRoads.append(JunctionRoad(way,way,startLane if isStartPoint else -startLane,-endLane if isStartPoint else endLane,
 						 self,"start" if isStartPoint else "end","start" if isStartPoint else "end",
-						 self.roadLineElements,self.roadElevationElements,checkType(way))) 
+						 self.roadLineElements,self.roadElevationElements)) 
 			
 			#**MAY need to add the checktype function here too
 
@@ -370,7 +392,7 @@ class OSMWayEndcap:
 				endLane += 1
 				self.JunctionRoads.append(JunctionRoad(way,way,startLane if isStartPoint else -startLane,-endLane if isStartPoint else endLane,
 						 self,"start" if isStartPoint else "end","start" if isStartPoint else "end",
-						 self.roadLineElements,self.roadElevationElements,checkType(way)))
+						 self.roadLineElements,self.roadElevationElements))
 
 
 #Cell
@@ -460,14 +482,13 @@ class OSMWay:
 		if "oneway" in self.tags:
 			if 'yes' in self.tags["oneway"]:
 				
-				print("one way detected! doing da magic lane trick")
+				#print("one way detected! doing da magic lane trick")
 				#the lane offset needs to be half * total # of lanes
 				self.laneOffset = self.laneNumberDirection / 2.0 * getWidth(checkType(self))
 
 		else:
 			self.laneOffset = 0.0
 		return
-		
 
 
 	def prepareConnections(self):
@@ -521,8 +542,9 @@ class OSMWay:
 		try:self.K2_turnLanesOpposite = self.tags["turn:lanes:backward"].replace("slight_left","slight_l").replace("slight_right","slight_r").replace("merge_to_right","merge_r").replace("merge_to_left", "merge_l").split("|")
 		except: pass
 
-		#print(lanes,self.tags)
-
+		###print(lanes,laneNumberDirection,laneNumberOpposite,self.tags)
+ 
+		#best case rarely happens because there is no tag
 		if lanes > 0 and laneNumberDirection + laneNumberOpposite == lanes:  #best case
 			#print("all clear")
 			self.laneNumberDirection = laneNumberDirection
@@ -564,6 +586,7 @@ class OSMWay:
 		
 
 		#if no other cases:
+		#print()
 		if lanes == -1:
 			lanes = 1 if oneWay else 2
 			#adds 2 lanes ( back and forth)
@@ -602,6 +625,7 @@ def parseAll(pfad, bildpfad = None, minimumHeight = 0.0, maximumHeight = 100.0, 
 
 
 	#create streetrNodedict and count rNodeuse
+	
 	for entity in parse_file(pfad):
 		if isinstance(entity, Way):
 			#print(entity.tags)
@@ -617,7 +641,7 @@ def parseAll(pfad, bildpfad = None, minimumHeight = 0.0, maximumHeight = 100.0, 
 					OSMPreWay(entity)
 			'''
 			for word in ["highway"]:#, "lanes", "oneway", "foot", "sidewalk",  "footway"]: #, "cycleway",
-				if word in entity.tags and not "cycleway" in entity.tags["highway"]: #and not "service" in entity.tags["highway"]:
+				if word in entity.tags and not "crosswalk" in entity.tags["highway"] and not "cycleway" in entity.tags["highway"]: #and not "service" in entity.tags["highway"]:
 					#print(entity.tags)
 					OSMPreWay(entity)
 	
@@ -856,13 +880,13 @@ class JunctionRoad:
 			#print("Roads: {0} and {1}".format(checkType(predecessorway.tags),checkType(successorway.tags)))
 			if notDriveWalk(checkType(predecessorway),checkType(successorway)):
 					#print("matching junction type")
-					roads.append(JunctionRoad(predecessorway,successorway,connection[0],connection[1],junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements,checkType(predecessorway)))
+					roads.append(JunctionRoad(predecessorway,successorway,connection[0],connection[1],junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements))
 			else:
 				None
 				#print("!!!!!!!!!!!!!non matching road type")
 				#roads.append(JunctionRoad(predecessorway,successorway,connection[0],connection[1],junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements,checkType(predecessorway.tags)))
 		return roads
-	def __init__(self,predecessorway,successorway,startlane,endlane,junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements,type="driving"):
+	def __init__(self,predecessorway,successorway,startlane,endlane,junctionNode,contactPointPredecessor,contactPointSuccessor,roadElements,elevationElements,type="driving",):
 		#** added the laneWidth field
 		self.id = str(predecessorway.id)+"_to_"+str(successorway.id)+"_lane_"+str(startlane)+"_to_"+str(endlane)
 		self.xodrID = str(rNode.giveNextElementID())
@@ -880,7 +904,10 @@ class JunctionRoad:
 		self.contactPointSuccessor = contactPointSuccessor
 		self.roadElements = roadElements
 		self.elevationElements = elevationElements
-		self.type = type
+
+		# predecessoryway.tags should work but somehow it doesnt, so no .tags is necessary
+		self.type = checkType(predecessorway)
+
 		#print(self.type)
 
 		length = 0.0
@@ -888,7 +915,8 @@ class JunctionRoad:
 		width = getWidth(type)
 		#print(width,self.id)
 		self.laneOffset = 0.0
-		# self.findOffsetJ()
+		#print(predecessorway,successorway)
+		self.findOffsetJ(predecessorway)
 
 		for element in self.roadElements:
 			length += element["length"]
@@ -899,8 +927,22 @@ class JunctionRoad:
 		#print(self.laneOffsetA,width)
 		laneOffsetEnd = (abs(self.successorlane)-1.0)* np.sign(self.successorlane) * width
 		self.laneOffsetB = -(self.laneOffsetA-laneOffsetEnd)/length
-		print(self.laneOffsetA,self.laneOffsetB)
+		#print(self.laneOffsetA,self.laneOffsetB)
 
+	def findOffsetJ(self,road):
+		'''
+		similar as findoffsetJ but made to work with Junctions instead
+		'''
+		if "oneway" in road.tags:
+			if 'yes' in road.tags["oneway"]:
+				
+				#print("one way detected! doing da magic lane trick")
+				#the lane offset needs to be half * total # of lanes
+				self.laneOffset = road.laneNumberDirection / 2.0 * getWidth(checkType(road))
+
+		else:
+			self.laneOffset = 0.0
+		return 
 
 #Cell
 def createOSMJunctionRoadLine(way1,way2,junctionNode, maxerror=2.0):

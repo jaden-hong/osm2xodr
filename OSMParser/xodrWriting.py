@@ -68,7 +68,7 @@ def fillNormalRoads(path = 'Test.xodr'):
             lengths.append(element["length"])
             elevation += '''
             <elevation s="{0}" a="{1}" b="{2}" c="0.0" d="0.0"/>'''.format(sum(lengths[:-1]),element["zstart"], element["steigung"])
-
+            
         name = "Road "+ str(road.xodrID)
         try: name = road.tags["name"]
         except: pass
@@ -112,6 +112,10 @@ def fillNormalRoads(path = 'Test.xodr'):
         rightlanenumber = -1
 
         for i in range(road.laneNumberDirection):
+
+
+            #print(OpenDriveType(checkType(road)))
+            
             
             rightlanes += '''
                         <lane id="{0}" type="{1}" level="false">
@@ -255,7 +259,7 @@ def fillJunctionRoads(path = 'Test.xodr'):
         <elevationProfile>''' + elevation + '''
         </elevationProfile>
              <lanes>
-                <laneOffset s="0.0" a="{0}" b="{1}" c="0.0" d="0.0"/>'''.format(road.laneOffsetA,"0.0") + '''
+                <laneOffset s="0.0" a="{0}" b="{1}" c="0.0" d="0.0"/>'''.format(road.laneOffset+road.laneOffsetA,road.laneOffsetB) + '''
                 <laneSection s="0.0">
                      <center>
                         <lane id="0" type="none" level="false">
@@ -280,7 +284,8 @@ def fillJunctionRoads(path = 'Test.xodr'):
         #road.laneOffsetA, road.laneOffsetB
 
 
-        #print(road.type,getWidth(road.type))
+        #
+        # road.type,getWidth(road.type))
         #need to adjust this code here!
 
 

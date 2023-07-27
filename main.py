@@ -4,9 +4,9 @@ from OSMParser.testing import TestEntity, _test_nodes, testSimpleRoad, test_3Way
 from OSMParser.osmParsing import parseAll,rNode, OSMWay,JunctionRoad, OSMWayEndcap, createOSMJunctionRoadLine, createOSMWayNodeList2XODRRoadLine
 from OSMParser.xodrWriting import startBasicXODRFile,fillNormalRoads,fillJunctionRoads
 
-osmPfad = r'C:\Users\jhong324\Documents\RESEARCH\osm\westernNeighbourhood2.osm'
+osmPfad = r'C:\Users\jhong324\Documents\RESEARCH\osm\western2.osm'
 #topographieKartenPfad = ''
-xodrPfad = r'C:\Users\jhong324\Documents\RESEARCH\xodr\westernNeighbourhood2.2.xodr'
+xodrPfad = r'C:\Users\jhong324\Documents\RESEARCH\xodr\western3.2.xodr'
 
 # osmPfad = r'C:\Users\jhong324\Documents\RESEARCH\osm\westernNeighbourhood2.osm'
 # #topographieKartenPfad = ''

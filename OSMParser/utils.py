@@ -24,13 +24,14 @@ def checkType(val):
 	if "highway" in value:
 		roadType = value["highway"]
 
-		if roadType == "footway" or roadType == "pedestrian" or roadType == "steps": #or roadType == "sidewalk" or roadType == "steps":
+		if roadType == "footway" or roadType == "pedestrian" or roadType == "steps" or roadType == "path": #or roadType == "sidewalk" or roadType == "steps":
 			if "footway" in value:
 				specificType = value["footway"]
 				
 				# if "crossing" in value:
 				if specificType == "crossing": ## ZEBRA crossing availble as syntax, could use to determine whether the mesh will be marked or not !!
-					return "crosswalk"
+					#print('crosswalk detected : ( ')
+					return
 
 				# elif "sidewalk" in value:
 				if specificType == "sidewalk":
@@ -46,7 +47,8 @@ def checkType(val):
 					return "service"
 				else:
 					return "driving"
-	print("COULD NOT ASSIGN :(")
+	#print(value)
+	#print("COULD NOT ASSIGN :(")
 	return "idk"
 
 ##***CAN INTEGRATE DIFFERENT LANE WIDTHS THIS WAY (using opedrivetype to determine xodr type)
@@ -72,10 +74,11 @@ def checkOneWay(road,width,laneNum,maxLane):
 
 
 def OpenDriveType(value):
-	if value == "steps":
-		return "footway"
+	if value == "steps" or value == "path": #or value == "crosswalk":
+		return "sidewalk"
 	elif value == "service":
 		return "driving"
+	#print(value)
 	return value
 
 def notDriveWalk(road1,road2):
@@ -124,7 +127,7 @@ def getWidth(val):
 	elif val == "driving":
 		width = 3.0
 	elif val == "service":
-		width = 1.5
+		width = 3.0
 	return width
 
 def giveHeading(x1,y1,x2,y2):
